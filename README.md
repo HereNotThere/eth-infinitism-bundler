@@ -1,3 +1,12 @@
+# Modified for use with Anvil
+- Only to be used for local development
+- Modified this bundler to work with Anvil - disables `entryPoint.callStatic.simulateValidation` when estimating gas
+- To run:
+- make sure anvil is running
+- checkout the branch `evan/anvil-compat`
+- `yarn && yarn preprocess`
+- need to deploy both entrypoint and factory contracts (see main repo)
+
 # EIP4337 reference modules
 
 ## Bundler
