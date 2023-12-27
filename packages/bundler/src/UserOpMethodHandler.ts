@@ -105,6 +105,26 @@ export class UserOpMethodHandler {
       ...await resolveProperties(userOp1) as any
     }
 
+    // callStatic.simulateValidation fails on Anvil,
+    // so just fake it and estimate the verificationGasLimit gas using some other method.
+    if (this.config.unsafe) {
+      const callGasLimit = await this.provider.estimateGas({
+        from: this.entryPoint.address,
+        to: userOp.sender,
+        data: userOp.callData
+      }).then(b => b.toNumber()).catch(err => {
+        const message = err.message.match(/reason="(.*?)"/)?.at(1) ?? 'execution reverted'
+        throw new RpcError(message, ValidationErrors.UserOperationReverted)
+      })
+      const preVerificationGas = calcPreVerificationGas(userOp)
+      const verificationGasLimit = BigNumber.from(callGasLimit).toNumber()
+      return {
+        preVerificationGas,
+        verificationGasLimit,
+        callGasLimit
+      }
+    }
+
     // todo: checks the existence of parameters, but since we hexlify the inputs, it fails to validate
     await this._validateParameters(deepHexlify(userOp), entryPointInput)
     // todo: validation manager duplicate?
